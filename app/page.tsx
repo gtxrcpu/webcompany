@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import {
   Code,
   Cpu,
@@ -17,7 +17,6 @@ import {
   ChevronRight,
   MapPin,
   Mail,
-  Phone,
   Linkedin,
   Twitter,
   Instagram,
@@ -37,8 +36,80 @@ import {
   FileCode,
   ArrowUpRight,
   AlertTriangle,
-  Gauge
+  LucideIcon
 } from 'lucide-react';
+
+// --- Types & Interfaces ---
+
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: 'primary' | 'outline' | 'ghost' | 'white' | 'ai' | 'secondary';
+  className?: string;
+  onClick?: () => void;
+  icon?: LucideIcon;
+  disabled?: boolean;
+}
+
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface SectionTagProps {
+  children: React.ReactNode;
+}
+
+interface BadgeProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface NavigationProps {
+  activePage: string;
+  setPage: (page: string) => void;
+  isScrolled: boolean;
+  onOpenAI: () => void;
+}
+
+interface HeroProps {
+  setPage: (page: string) => void;
+  onOpenAI: () => void;
+}
+
+interface ArchitectResult {
+  title: string;
+  summary: string;
+  features: string[];
+  stack: string[];
+  timeline: string;
+  advice: string;
+}
+
+interface TechStackResult {
+  frontend: string;
+  backend: string;
+  database: string;
+  cloud: string;
+  reason: string;
+}
+
+interface ROIResult {
+  hoursSaved: string | number;
+  efficiency: string;
+  summary: string;
+}
+
+interface MigrationResult {
+  riskLevel: string;
+  strategy: string;
+  cloudTarget: string;
+  summary: string;
+}
+
+interface Message {
+  role: 'user' | 'model';
+  text: string;
+}
 
 // --- Design System & Theme Configuration ---
 
@@ -57,7 +128,7 @@ const THEME = {
 
 // --- Components ---
 
-const Button = ({ children, variant = 'primary', className = '', onClick, icon: Icon, disabled }) => {
+const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', className = '', onClick, icon: Icon, disabled }) => {
   const baseStyle = "inline-flex items-center justify-center px-6 py-3 text-sm font-medium transition-all duration-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none";
 
   const variants = {
@@ -65,7 +136,8 @@ const Button = ({ children, variant = 'primary', className = '', onClick, icon: 
     outline: "border border-slate-300 text-slate-700 bg-transparent hover:bg-slate-50",
     ghost: "text-slate-600 hover:text-blue-600 hover:bg-blue-50",
     white: "bg-white text-blue-900 hover:bg-slate-100 shadow-md",
-    ai: "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-purple-500/30 hover:-translate-y-0.5 border border-purple-400/20"
+    ai: "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-purple-500/30 hover:-translate-y-0.5 border border-purple-400/20",
+    secondary: "bg-slate-800 text-white hover:bg-slate-700 shadow-md"
   };
 
   return (
@@ -76,30 +148,30 @@ const Button = ({ children, variant = 'primary', className = '', onClick, icon: 
   );
 };
 
-const Card = ({ children, className = '' }) => (
+const Card: React.FC<CardProps> = ({ children, className = '' }) => (
   <div className={`bg-white rounded-xl border border-slate-100 shadow-sm hover:shadow-xl transition-shadow duration-300 ${className}`}>
     {children}
   </div>
 );
 
-const SectionTag = ({ children }) => (
+const SectionTag: React.FC<SectionTagProps> = ({ children }) => (
   <span className="inline-block py-1 px-3 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold uppercase tracking-wider mb-4">
     {children}
   </span>
 );
 
-const Badge = ({ children, className = "" }) => (
+const Badge: React.FC<BadgeProps> = ({ children, className = "" }) => (
   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-800 mr-2 mb-2 ${className}`}>
     {children}
   </span>
 );
 
-// --- FEATURE 1: Gemini Architect Modal (Existing) ---
+// --- FEATURE 1: Gemini Architect Modal ---
 
-const GeminiArchitectModal = ({ isOpen, onClose, setPage }) => {
+const GeminiArchitectModal: React.FC<{ isOpen: boolean; onClose: () => void; setPage: (page: string) => void }> = ({ isOpen, onClose, setPage }) => {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<ArchitectResult | null>(null);
   const [error, setError] = useState('');
 
   const generateBlueprint = async () => {
@@ -109,7 +181,7 @@ const GeminiArchitectModal = ({ isOpen, onClose, setPage }) => {
     setError('');
     setResult(null);
 
-    const apiKey = "";
+    const apiKey = ""; // Replace with actual key or env variable
     const systemPrompt = `
       You are the Senior Solutions Architect AI for PT. Vista Primora Nusantara.
       Response Format: JSON object ONLY.
@@ -144,7 +216,7 @@ const GeminiArchitectModal = ({ isOpen, onClose, setPage }) => {
       if (aiText) setResult(JSON.parse(aiText));
       else throw new Error("No blueprint generated.");
 
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || "Connection failed.");
     } finally {
       setLoading(false);
@@ -203,12 +275,12 @@ const GeminiArchitectModal = ({ isOpen, onClose, setPage }) => {
 
 const VistaBotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     { role: 'model', text: "Hello! I'm VistaBot. Ask me about our services, tech stack, or how we work." }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const chatEndRef = useRef(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && chatEndRef.current) {
@@ -218,7 +290,7 @@ const VistaBotWidget = () => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    const userMsg = { role: 'user', text: input };
+    const userMsg: Message = { role: 'user', text: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
@@ -421,7 +493,7 @@ const Contact = () => {
                   </button>
                 </div>
                 <textarea
-                  rows="4"
+                  rows={4}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
@@ -443,7 +515,7 @@ const Contact = () => {
 
 const TechStackAdvisor = () => {
   const [industry, setIndustry] = useState('');
-  const [recommendation, setRecommendation] = useState(null);
+  const [recommendation, setRecommendation] = useState<TechStackResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const getAdvice = async () => {
@@ -562,7 +634,7 @@ const TechStackAdvisor = () => {
 
 const ROICalculator = () => {
   const [processDesc, setProcessDesc] = useState('');
-  const [analysis, setAnalysis] = useState(null);
+  const [analysis, setAnalysis] = useState<ROIResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const calculateROI = async () => {
@@ -758,7 +830,7 @@ const CodeRefactorDemo = () => {
 
 const MigrationConsultant = () => {
   const [legacyStack, setLegacyStack] = useState('');
-  const [report, setReport] = useState(null);
+  const [report, setReport] = useState<MigrationResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const assessMigration = async () => {
@@ -816,7 +888,7 @@ const MigrationConsultant = () => {
           </p>
           <textarea
             className="w-full p-3 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none mb-4"
-            rows="3"
+            rows={3}
             placeholder="e.g. PHP 5.4, MySQL 5.5, hosted on physical server..."
             value={legacyStack}
             onChange={(e) => setLegacyStack(e.target.value)}
@@ -867,7 +939,7 @@ const MigrationConsultant = () => {
 
 // --- Main Page Components ---
 
-const Navigation = ({ activePage, setPage, isScrolled, onOpenAI }) => {
+const Navigation: React.FC<NavigationProps> = ({ activePage, setPage, isScrolled, onOpenAI }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const navLinks = [
@@ -964,7 +1036,7 @@ const Navigation = ({ activePage, setPage, isScrolled, onOpenAI }) => {
   );
 };
 
-const Hero = ({ setPage, onOpenAI }) => (
+const Hero: React.FC<HeroProps> = ({ setPage, onOpenAI }) => (
   <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-50">
     {/* Abstract Background Elements */}
     <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-blue-200/30 blur-3xl"></div>
@@ -1310,7 +1382,7 @@ const WhyUs = () => {
   );
 };
 
-const Footer = ({ setPage }) => (
+const Footer: React.FC<{ setPage: (page: string) => void }> = ({ setPage }) => (
   <footer className="bg-slate-900 text-slate-300 py-16 border-t border-slate-800">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid md:grid-cols-4 gap-12 mb-12">
