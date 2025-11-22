@@ -39,6 +39,11 @@ import {
   LucideIcon
 } from 'lucide-react';
 
+// --- KONFIGURASI API KEY ---
+// PENTING: Tempel API Key Gemini Anda di dalam tanda kutip di bawah ini.
+// Dapatkan key gratis di: https://aistudio.google.com/app/apikey
+const NEXT_PUBLIC_GEMINI_API_KEY = "AIzaSyDnM6DJJa4MPVWxALbIBiDK0vuvhiWlmp0";
+
 // --- Types & Interfaces ---
 
 interface ButtonProps {
@@ -176,12 +181,15 @@ const GeminiArchitectModal: React.FC<{ isOpen: boolean; onClose: () => void; set
 
   const generateBlueprint = async () => {
     if (!prompt.trim()) return;
+    if (!NEXT_PUBLIC_GEMINI_API_KEY || NEXT_PUBLIC_GEMINI_API_KEY === "ISI_API_KEY_GEMINI_ANDA_DISINI") {
+      setError("API Key belum dipasang. Silakan edit kode dan masukkan key dari Google AI Studio.");
+      return;
+    }
 
     setLoading(true);
     setError('');
     setResult(null);
 
-    const apiKey = ""; // Replace with actual key or env variable
     const systemPrompt = `
       You are the Senior Solutions Architect AI for PT. Vista Primora Nusantara.
       Response Format: JSON object ONLY.
@@ -198,7 +206,7 @@ const GeminiArchitectModal: React.FC<{ isOpen: boolean; onClose: () => void; set
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${NEXT_PUBLIC_GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -244,7 +252,7 @@ const GeminiArchitectModal: React.FC<{ isOpen: boolean; onClose: () => void; set
             <>
               <p className="text-slate-600 mb-4">Describe your dream software project. Our AI will generate an instant technical blueprint.</p>
               <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="I want to build a platform that..." className="w-full h-32 p-4 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none resize-none mb-4 text-slate-800 placeholder:text-slate-400" />
-              {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg">{error}</div>}
+              {error && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-200">{error}</div>}
               <div className="flex justify-end">
                 <Button variant="ai" onClick={generateBlueprint} disabled={loading || !prompt.trim()} className="w-full sm:w-auto">
                   {loading ? <><Loader2 className="animate-spin mr-2 h-4 w-4" /> Analyzing...</> : <><Sparkles className="mr-2 h-4 w-4" /> Generate Blueprint</>}
@@ -290,12 +298,18 @@ const VistaBotWidget = () => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
+
     const userMsg: Message = { role: 'user', text: input };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
 
-    const apiKey = "";
+    if (!NEXT_PUBLIC_GEMINI_API_KEY || NEXT_PUBLIC_GEMINI_API_KEY === "ISI_API_KEY_GEMINI_ANDA_DISINI") {
+      setMessages(prev => [...prev, { role: 'model', text: "Error: API Key belum dikonfigurasi. Mohon developer memasukkan API Key di page.tsx." }]);
+      setLoading(false);
+      return;
+    }
+
     const systemPrompt = `
       You are VistaBot, the AI assistant for PT. Vista Primora Nusantara.
       Company Info:
@@ -312,7 +326,7 @@ const VistaBotWidget = () => {
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${NEXT_PUBLIC_GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -393,11 +407,15 @@ const Contact = () => {
 
   const handlePolish = async () => {
     if (!message.trim()) return;
+    if (!NEXT_PUBLIC_GEMINI_API_KEY || NEXT_PUBLIC_GEMINI_API_KEY === "ISI_API_KEY_GEMINI_ANDA_DISINI") {
+      alert("API Key belum diset!");
+      return;
+    }
+
     setPolishing(true);
-    const apiKey = "";
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${NEXT_PUBLIC_GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -520,8 +538,12 @@ const TechStackAdvisor = () => {
 
   const getAdvice = async () => {
     if (!industry.trim()) return;
+    if (!NEXT_PUBLIC_GEMINI_API_KEY || NEXT_PUBLIC_GEMINI_API_KEY === "ISI_API_KEY_GEMINI_ANDA_DISINI") {
+      alert("API Key belum diset!");
+      return;
+    }
+
     setLoading(true);
-    const apiKey = "";
 
     const systemPrompt = `
       You are a CTO (Chief Technology Officer) for an IT consultancy.
@@ -540,7 +562,7 @@ const TechStackAdvisor = () => {
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${NEXT_PUBLIC_GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -639,8 +661,12 @@ const ROICalculator = () => {
 
   const calculateROI = async () => {
     if (!processDesc.trim()) return;
+    if (!NEXT_PUBLIC_GEMINI_API_KEY || NEXT_PUBLIC_GEMINI_API_KEY === "ISI_API_KEY_GEMINI_ANDA_DISINI") {
+      alert("API Key belum diset!");
+      return;
+    }
+
     setLoading(true);
-    const apiKey = "";
     const systemPrompt = `
       You are a Business Analyst.
       User will describe a manual business process.
@@ -656,7 +682,7 @@ const ROICalculator = () => {
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${NEXT_PUBLIC_GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -751,7 +777,12 @@ const CodeRefactorDemo = () => {
 
   const handleRefactor = async () => {
     setLoading(true);
-    const apiKey = "";
+    if (!NEXT_PUBLIC_GEMINI_API_KEY || NEXT_PUBLIC_GEMINI_API_KEY === "ISI_API_KEY_GEMINI_ANDA_DISINI") {
+      alert("API Key belum diset!");
+      setLoading(false);
+      return;
+    }
+
     const systemPrompt = `
       You are a Senior Software Engineer advocating for Clean Code.
       Refactor the provided code to be modern (ES6+), concise, and robust.
@@ -761,7 +792,7 @@ const CodeRefactorDemo = () => {
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${NEXT_PUBLIC_GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -835,8 +866,12 @@ const MigrationConsultant = () => {
 
   const assessMigration = async () => {
     if (!legacyStack.trim()) return;
+    if (!NEXT_PUBLIC_GEMINI_API_KEY || NEXT_PUBLIC_GEMINI_API_KEY === "ISI_API_KEY_GEMINI_ANDA_DISINI") {
+      alert("API Key belum diset!");
+      return;
+    }
+
     setLoading(true);
-    const apiKey = "";
 
     const systemPrompt = `
       You are a Modernization Architect. 
@@ -854,7 +889,7 @@ const MigrationConsultant = () => {
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${NEXT_PUBLIC_GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
