@@ -40,9 +40,8 @@ import {
 } from 'lucide-react';
 
 // --- KONFIGURASI API KEY ---
-// PENTING: Tempel API Key Gemini Anda di dalam tanda kutip di bawah ini.
-// Dapatkan key gratis di: https://aistudio.google.com/app/apikey
-const NEXT_PUBLIC_GEMINI_API_KEY = "AIzaSyDnM6DJJa4MPVWxALbIBiDK0vuvhiWlmp0";
+// FIX: Menambahkan ': string' agar TypeScript tidak error saat key diganti.
+const NEXT_PUBLIC_GEMINI_API_KEY: string = "AIzaSyDnM6DJJa4MPVWxALbIBiDK0vuvhiWlmp0";
 
 // --- Types & Interfaces ---
 
